@@ -1,0 +1,14 @@
+======================================================================
+ORDEN DE SUMINISTRO INDUSTRIAL - FERRETERIA INDUSTRIAL DEL DUERO S.L.
+======================================================================
+NIF CLIENTE  : B47120934
+PEDIDO NUM   : FID-2026-0003
+FECHA PEDIDO : 07/11/2026
+HORA PEDIDO  : 17:45:37
+DESTINO      : NAVE INDUSTRIAL VALLADOLID
+----------------------------------------------------------------------
+POS  REFERENCIA          TIPO  CANTIDAD   EMBALAJE   PLAZO_DIAS
+----------------------------------------------------------------------
+01   TORN-HEX-ALTA-RES   T1    45         D          03
+======================================================================
+ESTADO: APROBADO | CONTROL_CALIDAD: SI

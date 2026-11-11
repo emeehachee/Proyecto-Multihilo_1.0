@@ -1,0 +1,7 @@
+Para ejecutar correctamente la aplicacion, es necesario iniciar las siguientes clases Java en dos terminales independientes:
+
+    1-CPrincipal: ejecutar la clase sin utilizar el modo Debug
+
+    2-CServidorGeneradorPedidos: ejecutar la clase sin utilizar el modo Debug
+
+Ambos programas tienen que estar ejecutandose a la vez para que el servidor genere los pedidos y la fabrica pueda procesarlos

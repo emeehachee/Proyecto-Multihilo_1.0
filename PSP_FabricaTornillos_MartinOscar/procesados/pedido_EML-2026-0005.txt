@@ -1,0 +1,12 @@
+[CABECERA_DOCUMENTO]
+cif_empresa=E46991823
+razon_social=Electro-Mecanica Levante C.B.
+fecha_operacion=2026-11-07
+hora_registro=17:45:47
+
+[DATOS_PEDIDO]
+id_pedido_cliente=EML-2026-0005
+tipo_tornillo=T3
+cantidad_unidades=58
+embalaje_requerido=P
+centro_entrega=ALMACEN_VALENCIA_SUR

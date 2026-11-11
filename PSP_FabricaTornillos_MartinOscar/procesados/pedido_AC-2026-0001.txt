@@ -1,0 +1,9 @@
+# ==============================================================================
+# EMPRESA_EMISORA: Automocion del Cantabrico S.A.
+# CIF_EMISOR: A33012948
+# FECHA_ORDEN: 2026-11-07
+# HORA_ORDEN: 17:45:31
+# CENTRO_ENTREGA: PLANTA GIJON ENSAMBLAJE
+# ==============================================================================
+LINEA;COD_PEDIDO;FECHA;TIPO_TORNILLO;CANTIDAD;FORMATO_EMPAQUE;REF_INTERNA;PRECIO_UNITARIO
+1;AC-2026-0001;2026-11-07;T1;400;C;REF-PERNO-T1;0.18
