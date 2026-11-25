@@ -1,0 +1,72 @@
+"PROBLEMILLA" al arrancar cPrincipal y cServidor, me corre y hace sus cosas, pero no dentro de mis carpetas, es decir no lo mete todos en su carpeta propia del ejercicos, si no en la carpeta anterior (en mi caso)
+
+RA1:-Opción 1.1 Limite en Proveedor 3(>300) y Archivo Diferenciado (exit 2)
+    -Opción 1.2 Timeout 81.500ms), destroy() y destroyForcibly()
+
+RA2:-Opción 2.1 Dos Maquinas T1 en la Misma cola y Piezas Defectuosas
+    -Opción 2.2 Averias cada 500 Tornillos sanos y Unico mecanico
+
+
+=== PREGUNTAS ===
+1.A: Dreanado stodut/stderr
+En CProcesoCoordinador.java, el método procesarFichero() crea el proceso lector con ProcessBuilder y obtiene sus dos canales de salida, que son: getInputStream() para el stdout del lector y getErrorStream() para su stderr, después inicia un hilo de lectura para cada uno antes de esperar al proceso. Esto evita un posible bloqueo: el sistema operativo usa buffers limitados, si el lector escribe suficiente salida y nadie la recoge, el buffer se puede llenar; entonces el lector queda bloqueado al escribir y no termina. Si el coordinador esta esperando a que termine (utilizando waitFor()), ambos procesos pueden quedarse esperando al otro. Los hilos de leerFlujo() drenan ambos canales mientras el coordinador espera
+En mi código la espera tiene un limite de 1500 ms. Si se agota, se intenta terminar el proceso y se esperan tanto su salida como los hilos lectores
+
+
+1.B: Memoria procesos 
+El lector se ejecuta como otro proceso del SO, no como un hilo del coordinador, Por eso tiene su propio espacio de memoria: no comparte directamente los objetos del coordinador, como sus StringBuilder o sus pedidos
+La comunicación que si usa el programa está en procesarFichero(), que se encuentra en la clase CProcesoCoordinador, que hace lo siguiente:
+
+	1-El coordinador le pasa al proceso la clase lectora y la ruta del fichero como argumento
+	2-El lector devuelve los datos del pedido por stdout, que el coordinador recoge con getInputStream()
+	3-Los errores del lector llegan por stderr, que se recoge con getErrorStream()
+	4-El fichero también sirve como medio de intercambio: ambos procesos trabajan con su ruta
+Por tanto, el intercambio no se hace compartiendo memoria, sino mediante argumentos, flujos del proceso y el sistema de archivos
+
+
+1.C Archivado y .tmp
+En CServidorGeneradorPedidos.java, escribirArchivoAtomico() escribe primero cada pedido en un archivo .tmp, lo cierra y después lo mueve a .txt mediante Files.move(..., ATOMIC_MOVE, REPLACE_EXISTING), la idea es que el coordinador vea el .txt cuando el pedido ya esta completo, en vez de leerlo mientras se escribe
+
+El coordinador archiva los pedidos en moverFichero() de CProcesoCoordinador.java: los mueve a procesados, rechazados o errores, este también usa ATOMIC_MOVE
+
+
+2.A Poision Pill propia
+En CPrincipal.java, al terminar las maquinas, envió una Poison Pill a cada buffer(D,P y C)
+El constructor CTornillo(boolean) la marca como tal en CTornillo.java y cada consumidor la detecta con isPoisonPill() y termina su hilo en CConsumidor.java
+
+Si dos consumidores compartieran una misma cola y solo se enviara una pastilla, la que la consuma terminaría; la otra podría quedarse esperando indefinidamente en consumir() cuando la cola se vaciara
+La Poison Pill es un elemento que retira un consumidor, no una señal que despierte o detenga a todos, en mi código, cada consumidor tiene su propio buffer y recibe su propia pastilla
+
+
+2.B CBufferLimitado = 3
+Los tres buffers se crean con capacidad 3 en CPrincipal.java, en CBufferLimitado.java, producir() espera mientras el buffer esta lleno, y, consumir() espera mientras esta vacio, uso while porque un hilo puede despertarse sin que la condición siga siendo valida, asi que se tiene volver a comprobar
+
+Si se cambiara por if, un productor podría despertarse y añadir un elemento aunque otro productor ya hubiera ocupado el espacio, superando la capacidad, y , un consumidor podraa despertarse y retirar de una cola que otro consumidor ya vacío, esto provocaría un error
+
+notifyAll(): productores y consumidores esperan sobre el mismo monitor, con notify(), podria despertarse un hilo del tipo equivocado, y quedar hilos bloqueados aunque la cola pueda avanzar
+
+
+2.C Almacen y 2 cerrojos
+En CAlmacen.java, retirarMaterial() es synchronized: el chequeo del stock y el descuento se hacen bajo el monitor del almacén, evitando que dos máquinas descuenten a la vez(simultáneamente) y dejen el stock mal (inconsistente), en este método no hay wait(), si no hay material suficiente, devuelve false
+
+deadlock: wait() libera solo el monitor sobre el que se invoca, no otros monitores que el hilo ya tenga, si un hilo conserva el cerrojo A mientras hace wait() sobre B, y el hilo que podría notificar en B necesita primero A, ninguno puede avanzar
+En mi código, las esperas están en otros monitores, no dentro de retirarMaterial()
+
+=== PANTALLAZO FINAL CPRINCIPAL ===
+========== INFORME FINAL DE FABRICA ==========
+Archivos procesados: 19
+Archivos rechazados: 3
+Pedidos terminados: 19
+Tornillos sanos fabricados: 2061
+Tornillos sanos fabricados por M1_A: 603
+Tornillos sanos fabricados por M1_B: 591
+Piezas defectuosas T1: 129
+Maquinas reparadas: 39
+Materia prima consumida: 2190
+Tornillos empaquetados: 2061
+Balance (consumido = empaquetado + defectuosos T1): 2190 = 2061 + 129
+BALANCE CORRECTO
+Paquetes cerrados: 244
+Errores producidos: 0
+Subprocesos abortados por timeout: 2
+==============================================
